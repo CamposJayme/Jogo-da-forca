@@ -1,18 +1,59 @@
 import entradaDados from 'readline-sync';
+
 import listaDeFrutas from './dados/frutas.js';
-import {selecionarFrutas, ocultarPalavra, atualizarPalavraOculta, validarLetraDigitada} from './funcoes/funcoes.js';
+
+import {
+    selecionarFrutas, 
+    ocultarPalavra, 
+    validarLetraDigitada, 
+    verificarJogoGanho,
+    verificarLetraNaPalavraEscolhida,
+    atualizarJogadasRestantes,
+    atualizarPalavraOculta,
+    exibirMensagemFimDeJogo
+} from './funcoes/funcoes.js';
 
 
-//------------------------ WORKSPACE INTERFACE -------------------------//
-console.log("------------JOGO DA FORCA------------\n");
+function jogarForca() {
 
-const frutaSelecionada = selecionarFrutas(listaDeFrutas); //Armazena fruta aleatória selecionada
-console.log(`Adivinhe o nome da fruta com ${frutaSelecionada.length} letras`);
-console.log("\nFruta: " + ocultarPalavra(frutaSelecionada));
+    //------------------------ INTERFACE -------------------------//
+    console.log("------------JOGO DA FORCA------------\n");
+    const frutaSelecionada = selecionarFrutas(listaDeFrutas); //Armazena fruta aleatória selecionada
+    console.log(`Adivinhe o nome da fruta com ${frutaSelecionada.length} letras`);
+    let palavraOculta = ocultarPalavra(frutaSelecionada);
+    //------------------------ INTERFACE -------------------------//
 
-const valorInserido = entradaDados.question('Digite uma letra: ');
-const validarLetra = validarLetraDigitada(valorInserido);
-console.log(validarLetra);
+    let erros = 0;
+    let statusJogo = 'andamento';
+    while (statusJogo === 'andamento') {
+        console.log("\nFruta: " + palavraOculta);
+        const valorInserido = entradaDados.question('Digite uma letra: ').toLowerCase();
+        
+        if (validarLetraDigitada(valorInserido)) {
+            if (verificarLetraNaPalavraEscolhida(valorInserido, frutaSelecionada)) {
+                palavraOculta = atualizarPalavraOculta(valorInserido, palavraOculta, frutaSelecionada);
+                if (verificarJogoGanho(palavraOculta, frutaSelecionada)) {
+                    statusJogo = 'venceu';
+                }
+            } else {
+                erros++;
 
-let frutaAtualizada = atualizarPalavraOculta(valorInserido, ocultarPalavra(frutaSelecionada), frutaSelecionada);
-console.log(frutaAtualizada);
+                const chances = atualizarJogadasRestantes(erros);
+
+                if (chances > 0) { 
+                    console.log(`OPÇÃO ERRADA! Você ainda tem ${chances} chance(s)!`);
+                } else {
+                    statusJogo = 'perdeu';
+                }
+            }
+        } else {
+            console.log("\nPor favor, digite uma letra válida.");  
+        }
+
+    }
+    exibirMensagemFimDeJogo(statusJogo);
+    console.log(`Palavra final: ${frutaSelecionada}`);
+
+}
+
+jogarForca();
